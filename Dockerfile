@@ -12,4 +12,4 @@ EXPOSE 6379/tcp
 
 RUN chmod +x init.sh
 
-ENTRYPOINT ["sh -c", "./init.sh"]
+ENTRYPOINT ["sh", "-c", "./init.sh"]
