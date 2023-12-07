@@ -1,4 +1,5 @@
-![image](https://github.com/AzagraMac/RedisDocker/assets/571796/5ebb3b2a-e77b-431a-8eb9-dcc5e768bdd2)
+<img src="https://github.com/AzagraMac/redis-docker/assets/571796/5316f9a7-c956-4226-8619-2c913897c3d0" width="400">
+
 
 ## Build
 
