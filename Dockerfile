@@ -12,4 +12,4 @@ EXPOSE 6379/tcp
 
 RUN chmod +x /redis/init.sh
 
-CMD /redis/init.sh
+CMD ["/bin/sh" "-c" "/redis/init.sh"]
