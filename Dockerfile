@@ -13,4 +13,3 @@ EXPOSE 6379/tcp
 RUN chmod +x /redis/init.sh
 
 CMD /redis/init.sh
-ENTRYPOINT /bin/sh
