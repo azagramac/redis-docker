@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  cache:
+    image: azagramac/redis:7.2.3-alpine3.18
+    container_name: redis
+    privileged: true
+    network_mode: "host"
+    restart: always
+    ports:
+      - '6379:6379'
+    command: sh -c "./init.sh"
+    volumes: 
+      - cache:/data
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 64M
+
+volumes:
+  cache:
+    driver: local
