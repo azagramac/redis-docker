@@ -12,4 +12,4 @@ EXPOSE 6379/tcp
 
 RUN chmod +x init.sh
 
-ENTRYPOINT ["redis-server", "/redis/redis.conf", "--loglevel", "verbose"]
+ENTRYPOINT ["sh -c", "./init.sh"]
