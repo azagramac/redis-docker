@@ -11,5 +11,3 @@ LABEL org.opencontainers.image.authors="https://azagramac.gitbook.io/"
 EXPOSE 6379/tcp
 
 RUN chmod +x init.sh
-
-ENTRYPOINT ["sh", "-c", "./init.sh"]
