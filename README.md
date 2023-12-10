@@ -6,8 +6,8 @@
 
 ## Build
 
-    git clone https://github.com/AzagraMac/RedisDocker.git
-    cd RedisDocker
+    git clone https://github.com/AzagraMac/redis-docker.git
+    cd redis-docker
     
     docker build -t yourname/redis:tag
 
