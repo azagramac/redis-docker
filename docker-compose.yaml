@@ -1,7 +1,8 @@
-version: '3.8'
+---
+version: '3.9'
 services:
   cache:
-    image: azagramac/redis:7.2.3-alpine3.18
+    image: azagramac/redis:latest
     container_name: redis
     privileged: true
     network_mode: "host"
@@ -14,7 +15,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 128M
+          memory: 256M
         reservations:
           memory: 64M
 
