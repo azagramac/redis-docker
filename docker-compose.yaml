@@ -1,24 +1,23 @@
 ---
-version: '3.9'
 services:
   cache:
     image: azagramac/redis:latest
     container_name: redis
     privileged: true
-    network_mode: "host"
     restart: always
-    ports:
-      - '6379:6379'
     command: sh -c "./redis/init.sh"
+    environment:
+      - TZ=Europe/Madrid
+    ports:
+      - 6379:6379
     volumes: 
-      - cache:/data
+      - /volume1/docker/redis:/data:rw
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 512M
         reservations:
           memory: 64M
 
-volumes:
-  cache:
-    driver: local
+networks:
+  redis:
