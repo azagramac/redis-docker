@@ -1,4 +1,4 @@
-FROM redis:7.4.1-alpine3.20
+FROM redis:7.4.1-bookworm
 
 WORKDIR /redis
 
