@@ -5,13 +5,13 @@ services:
     container_name: redis
     privileged: true
     restart: always
-    command: sh -c "./redis/init.sh"
+    command: sh -c "./init.sh"
     environment:
+      - PUID=1000
+      - PGID=1000
       - TZ=Europe/Madrid
     ports:
       - 6379:6379
-    volumes: 
-      - /volume1/docker/redis:/data:rw
     deploy:
       resources:
         limits:

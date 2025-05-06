@@ -1,13 +1,14 @@
-FROM redis:7.4.1-bookworm
+FROM redis:7.4.3-bookworm
 
 WORKDIR /redis
 
-COPY init.sh /redis/init.sh
-COPY redis.conf /redis/redis.conf
+COPY init.sh .
+COPY redis.conf .
 
-LABEL version="7.4.1"
-LABEL org.opencontainers.image.authors="https://azagramac.gitbook.io/"
+LABEL version="7.4.3-bookworm"
+LABEL org.opencontainers.image.authors="https://blog.azagra.dev"
 
 EXPOSE 6379/tcp
 
-RUN chmod +x /redis/init.sh
+RUN apt-get update && apt-get install -y procps && rm -rf /var/lib/apt/lists/*
+RUN chmod +x init.sh
