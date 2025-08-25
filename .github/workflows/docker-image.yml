@@ -45,11 +45,13 @@ jobs:
           set -e
           set -o pipefail
 
-          VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest
-          echo "📦 Docker image pushed: latest"
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/redis:$VERSION
-          echo "📦 Docker image pushed: $VERSION"
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --tag ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest \
+            --tag ${{ secrets.DOCKERHUB_USERNAME }}/redis:$VERSION \
+            --push \
+            .
+          echo "🚀 Multi-arch Docker images pushed: latest and $VERSION"
 
       - name: 🎉 Verify Docker Hub tags
         shell: bash
