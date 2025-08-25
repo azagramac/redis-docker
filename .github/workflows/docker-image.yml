@@ -48,15 +48,17 @@ jobs:
         run: |
           VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
           echo "🔍 Verifying Docker Hub tags for user: ${{ secrets.DOCKERHUB_USERNAME }}"
-          
-          LATEST_TAG=$(curl -s "https://hub.docker.com/v2/repositories/azagramac/redis/tags/latest/" | jq -r '.name')
-          VERSION_TAG=$(curl -s "https://hub.docker.com/v2/repositories/azagramac/redis/tags/$VERSION/" | jq -r '.name')
-          
-          if [[ "$LATEST_TAG" == "latest" && "$VERSION_TAG" == "$VERSION" ]]; then
+
+          TAGS=$(curl -s "https://hub.docker.com/v2/repositories/azagramac/redis/tags?page_size=100" | jq -r '.results[].name')
+
+          echo "📄 Tags in Docker Hub repo:"
+          echo "$TAGS"
+
+          if echo "$TAGS" | grep -q "latest" && echo "$TAGS" | grep -q "$VERSION"; then
             echo "✅ Both tags are present on Docker Hub: latest and $VERSION"
           else
             echo "❌ Verification failed!"
-            echo "🟡 latest tag: $LATEST_TAG"
-            echo "🟡 version tag: $VERSION_TAG"
+            echo "🟡 latest present: $(echo "$TAGS" | grep -q "latest" && echo yes || echo no)"
+            echo "🟡 version present: $(echo "$TAGS" | grep -q "$VERSION" && echo yes || echo no)"
             exit 1
           fi
