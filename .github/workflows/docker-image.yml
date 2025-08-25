@@ -51,7 +51,6 @@ jobs:
 
           echo "📄 Tags in Docker Hub repo:"
           echo "$TAGS"
-
           echo "## 🐳 Docker Hub Tag Verification" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| 🔖 Tag | Estado |" >> $GITHUB_STEP_SUMMARY
