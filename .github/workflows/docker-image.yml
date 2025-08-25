@@ -21,22 +21,20 @@ jobs:
 
       - name: 🏗️ Build Docker image
         run: |
-          # Extraer versión desde Dockerfile
           VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
           echo "📝 Detected Docker version: $VERSION"
-
-          # Build image con ambos tags
+          
           docker build -t redis:latest -t redis:$VERSION .
           echo "🛠️ Docker image built with tags: latest and $VERSION"
 
-      - name: 🏷️ Tag Docker images con tu usuario
+      - name: 🏷️ Tag Docker images
         run: |
           VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
           docker tag redis:latest ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest
           docker tag redis:$VERSION ${{ secrets.DOCKERHUB_USERNAME }}/redis:$VERSION
           echo "🏷️ Docker images tagged: latest and $VERSION"
 
-      - name: 🚀 Push Docker images to Docker Hub
+      - name: 🚀 Push Docker images to 🐳 Docker Hub
         run: |
           VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest
