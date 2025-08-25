@@ -52,14 +52,15 @@ jobs:
           echo "📦 Docker image pushed: $VERSION"
 
       - name: 🎉 Verify Docker Hub tags
+        shell: bash
         run: |
           set -e
           set -o pipefail
 
-          VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
+          VERSION=$(grep -i "LABEL version" Dockerfile | cut -d'"' -f2)
           echo "🔍 Verifying Docker Hub tags for user: ${{ secrets.DOCKERHUB_USERNAME }}"
 
-          TAGS=$(curl -s "https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/redis/tags?page_size=100" | jq -r '.results[].name')
+          TAGS=$(curl -s "https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/redis/tags?page_size=100" | jq -r ".results[].name")
 
           echo "📄 Tags in Docker Hub repo:"
           echo "$TAGS"
@@ -70,26 +71,23 @@ jobs:
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
 
           if echo "$TAGS" | grep -q "latest"; then
-            LATEST_STATUS="Presente"
-            LATEST_EMOJI="✅"
+            LATEST="Presente"
           else
-            LATEST_STATUS="Faltante"
-            LATEST_EMOJI="❌"
+            LATEST="Faltante"
           fi
 
           if echo "$TAGS" | grep -q "$VERSION"; then
             VERSION_STATUS="Presente"
-            VERSION_EMOJI="✅"
           else
             VERSION_STATUS="Faltante"
-            VERSION_EMOJI="❌"
           fi
 
-          echo "| latest | $LATEST_EMOJI $LATEST_STATUS |" >> $GITHUB_STEP_SUMMARY
-          echo "| $VERSION | $VERSION_EMOJI $VERSION_STATUS |" >> $GITHUB_STEP_SUMMARY
+          echo "| latest | $( [ "$LATEST" = "Presente" ] && echo "✅ Presente" || echo "❌ Faltante" ) |" >> $GITHUB_STEP_SUMMARY
+          echo "| $VERSION | $( [ "$VERSION_STATUS" = "Presente" ] && echo "✅ Presente" || echo "❌ Faltante" ) |" >> $GITHUB_STEP_SUMMARY
 
-          if [ "$LATEST_STATUS" = "Presente" ] && [ "$VERSION_STATUS" = "Presente" ]; then
+          if [ "$LATEST" = "Presente" ] && [ "$VERSION_STATUS" = "Presente" ]; then
             echo "✅ Both tags are present on Docker Hub: latest and $VERSION"
           else
             echo "❌ Verification failed!"
             exit 1
+          fi
