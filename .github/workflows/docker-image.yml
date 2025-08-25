@@ -21,6 +21,9 @@ jobs:
 
       - name: 🏗️ Build Docker image
         run: |
+          set -e
+          set -o pipefail
+
           VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
           echo "📝 Detected Docker version: $VERSION"
           
@@ -29,6 +32,9 @@ jobs:
 
       - name: 🏷️ Tag Docker images
         run: |
+          set -e
+          set -o pipefail
+
           VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
           docker tag redis:latest ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest
           docker tag redis:$VERSION ${{ secrets.DOCKERHUB_USERNAME }}/redis:$VERSION
@@ -36,6 +42,9 @@ jobs:
 
       - name: 🚀 Push Docker images to 🐳 Docker Hub
         run: |
+          set -e
+          set -o pipefail
+
           VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest
           echo "📦 Docker image pushed: latest"
@@ -44,6 +53,9 @@ jobs:
 
       - name: 🎉 Verify Docker Hub tags
         run: |
+          set -e
+          set -o pipefail
+
           VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
           echo "🔍 Verifying Docker Hub tags for user: ${{ secrets.DOCKERHUB_USERNAME }}"
 
@@ -51,6 +63,7 @@ jobs:
 
           echo "📄 Tags in Docker Hub repo:"
           echo "$TAGS"
+
           echo "## 🐳 Docker Hub Tag Verification" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| 🔖 Tag | Estado |" >> $GITHUB_STEP_SUMMARY
@@ -71,10 +84,10 @@ jobs:
             VERSION_STATUS="Faltante"
             VERSION_EMOJI="❌"
           fi
-          
+
           echo "| latest | $LATEST_EMOJI $LATEST_STATUS |" >> $GITHUB_STEP_SUMMARY
           echo "| $VERSION | $VERSION_EMOJI $VERSION_STATUS |" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "$LATEST_STATUS" = "Presente" ] && [ "$VERSION_STATUS" = "Presente" ]; then
             echo "✅ Both tags are present on Docker Hub: latest and $VERSION"
           else
