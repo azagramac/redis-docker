@@ -70,24 +70,27 @@ jobs:
           echo "| 🔖 Tag | Estado |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
 
+          # Estados con emojis
           if echo "$TAGS" | grep -q "latest"; then
-            LATEST="Presente"
+            LATEST="✅ Presente"
           else
-            LATEST="Faltante"
+            LATEST="❌ Faltante"
           fi
 
           if echo "$TAGS" | grep -q "$VERSION"; then
-            VERSION_STATUS="Presente"
+            VERSION_STATUS="✅ Presente"
           else
-            VERSION_STATUS="Faltante"
+            VERSION_STATUS="❌ Faltante"
           fi
 
-          echo "| latest | $( [ "$LATEST" = "Presente" ] && echo "✅ Presente" || echo "❌ Faltante" ) |" >> $GITHUB_STEP_SUMMARY
-          echo "| $VERSION | $( [ "$VERSION_STATUS" = "Presente" ] && echo "✅ Presente" || echo "❌ Faltante" ) |" >> $GITHUB_STEP_SUMMARY
+          # Tabla en summary
+          echo "| latest | $LATEST |" >> $GITHUB_STEP_SUMMARY
+          echo "| $VERSION | $VERSION_STATUS |" >> $GITHUB_STEP_SUMMARY
 
-          if [ "$LATEST" = "Presente" ] && [ "$VERSION_STATUS" = "Presente" ]; then
-            echo "✅ Both tags are present on Docker Hub: latest and $VERSION"
+          # Mensaje en consola con emojis
+          if [[ "$LATEST" == "✅ Presente" && "$VERSION_STATUS" == "✅ Presente" ]]; then
+            echo "🎯 Both tags are present on Docker Hub: latest and $VERSION"
           else
-            echo "❌ Verification failed!"
+            echo "⚠️ Verification failed!"
             exit 1
           fi
