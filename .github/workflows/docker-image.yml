@@ -3,12 +3,32 @@ name: 🐳 Docker Redis - Build & Push
 on:
   push:
     branches:
-      - 'main'
+      - main
 
 jobs:
-  docker:
+  build:
     runs-on: ubuntu-latest
+    outputs:
+      VERSION: ${{ steps.get-version.outputs.version }}
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
 
+      - name: 🔍 Get Docker version
+        id: get-version
+        run: |
+          VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
+          echo "📝 Detected Docker version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: 🏗️ Build Docker image
+        run: |
+          docker build -t redis:latest -t redis:${{ steps.get-version.outputs.version }} .
+          echo "🛠️ Docker image built with tags: latest and ${{ steps.get-version.outputs.version }}"
+
+  tag:
+    runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -19,45 +39,43 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 🏗️ Build Docker image
-        run: |
-          set -e
-          set -o pipefail
-
-          VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
-          echo "📝 Detected Docker version: $VERSION"
-          
-          docker build -t redis:latest -t redis:$VERSION .
-          echo "🛠️ Docker image built with tags: latest and $VERSION"
-
       - name: 🏷️ Tag Docker images
         run: |
-          set -e
-          set -o pipefail
-
-          VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
           docker tag redis:latest ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest
-          docker tag redis:$VERSION ${{ secrets.DOCKERHUB_USERNAME }}/redis:$VERSION
-          echo "🏷️ Docker images tagged: latest and $VERSION"
+          docker tag redis:${{ needs.build.outputs.VERSION }} ${{ secrets.DOCKERHUB_USERNAME }}/redis:${{ needs.build.outputs.VERSION }}
+          echo "🏷️ Docker images tagged: latest and ${{ needs.build.outputs.VERSION }}"
+
+  push:
+    runs-on: ubuntu-latest
+    needs: tag
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🔑 Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: 🚀 Push Docker images to 🐳 Docker Hub
         run: |
-          set -e
-          set -o pipefail
-
-          VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest
           echo "📦 Docker image pushed: latest"
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/redis:$VERSION
-          echo "📦 Docker image pushed: $VERSION"
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/redis:${{ needs.build.outputs.VERSION }}
+          echo "📦 Docker image pushed: ${{ needs.build.outputs.VERSION }}"
+
+  verify:
+    runs-on: ubuntu-latest
+    needs: push
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
 
       - name: 🎉 Verify Docker Hub tags
         shell: bash
         run: |
-          set -e
-          set -o pipefail
-
-          VERSION=$(grep -i "LABEL version" Dockerfile | cut -d'"' -f2)
+          VERSION=${{ needs.build.outputs.VERSION }}
           echo "🔍 Verifying Docker Hub tags for user: ${{ secrets.DOCKERHUB_USERNAME }}"
 
           TAGS=$(curl -s "https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/redis/tags?page_size=100" | jq -r ".results[].name")
@@ -70,7 +88,6 @@ jobs:
           echo "| 🔖 Tag | Estado |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
 
-          # Estados con emojis
           if echo "$TAGS" | grep -q "latest"; then
             LATEST="✅ Presente"
           else
@@ -83,14 +100,13 @@ jobs:
             VERSION_STATUS="❌ Faltante"
           fi
 
-          # Tabla en summary
           echo "| latest | $LATEST |" >> $GITHUB_STEP_SUMMARY
           echo "| $VERSION | $VERSION_STATUS |" >> $GITHUB_STEP_SUMMARY
 
-          # Mensaje en consola con emojis
           if [[ "$LATEST" == "✅ Presente" && "$VERSION_STATUS" == "✅ Presente" ]]; then
             echo "🎯 Both tags are present on Docker Hub: latest and $VERSION"
           else
             echo "⚠️ Verification failed!"
             exit 1
           fi
+          
