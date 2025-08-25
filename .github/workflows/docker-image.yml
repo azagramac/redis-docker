@@ -21,18 +21,42 @@ jobs:
 
       - name: 🏗️ Build Docker image
         run: |
-          docker build -t redis:latest .
-          echo "🛠️ Docker image built locally: redis:latest"
+          # Extraer versión desde Dockerfile
+          VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
+          echo "📝 Detected Docker version: $VERSION"
 
-      - name: 🏷️ Tag Docker image
+          # Build image con ambos tags
+          docker build -t redis:latest -t redis:$VERSION .
+          echo "🛠️ Docker image built with tags: latest and $VERSION"
+
+      - name: 🏷️ Tag Docker images con tu usuario
         run: |
+          VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
           docker tag redis:latest ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest
-          echo "🏷️ Docker image tagged: ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest"
+          docker tag redis:$VERSION ${{ secrets.DOCKERHUB_USERNAME }}/redis:$VERSION
+          echo "🏷️ Docker images tagged: latest and $VERSION"
 
-      - name: 🚀 Push Docker image to Docker Hub
+      - name: 🚀 Push Docker images to Docker Hub
         run: |
+          VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest
-          echo "📦 Docker image pushed successfully: ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest"
+          echo "📦 Docker image pushed: latest"
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/redis:$VERSION
+          echo "📦 Docker image pushed: $VERSION"
 
-      - name: 🎉 Summary
-        run: echo "✅ Docker Redis workflow completed successfully!"
+      - name: 🎉 Verify Docker Hub tags
+        run: |
+          VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
+          echo "🔍 Verifying Docker Hub tags for user: ${{ secrets.DOCKERHUB_USERNAME }}"
+          
+          LATEST_TAG=$(curl -s "https://hub.docker.com/v2/repositories/azagramac/redis/tags/latest/" | jq -r '.name')
+          VERSION_TAG=$(curl -s "https://hub.docker.com/v2/repositories/azagramac/redis/tags/$VERSION/" | jq -r '.name')
+          
+          if [[ "$LATEST_TAG" == "latest" && "$VERSION_TAG" == "$VERSION" ]]; then
+            echo "✅ Both tags are present on Docker Hub: latest and $VERSION"
+          else
+            echo "❌ Verification failed!"
+            echo "🟡 latest tag: $LATEST_TAG"
+            echo "🟡 version tag: $VERSION_TAG"
+            exit 1
+          fi
