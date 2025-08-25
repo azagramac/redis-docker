@@ -57,21 +57,25 @@ jobs:
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
 
           if echo "$TAGS" | grep -q "latest"; then
-            LATEST_STATUS="✅ Presente"
+            LATEST_STATUS="Presente"
+            LATEST_EMOJI="✅"
           else
-            LATEST_STATUS="❌ Faltante"
+            LATEST_STATUS="Faltante"
+            LATEST_EMOJI="❌"
           fi
 
           if echo "$TAGS" | grep -q "$VERSION"; then
-            VERSION_STATUS="✅ Presente"
+            VERSION_STATUS="Presente"
+            VERSION_EMOJI="✅"
           else
-            VERSION_STATUS="❌ Faltante"
+            VERSION_STATUS="Faltante"
+            VERSION_EMOJI="❌"
           fi
-
-          echo "| latest | $LATEST_STATUS |" >> $GITHUB_STEP_SUMMARY
-          echo "| $VERSION | $VERSION_STATUS |" >> $GITHUB_STEP_SUMMARY
-
-          if [ "$LATEST_STATUS" = "✅ Presente" ] && [ "$VERSION_STATUS" = "✅ Presente" ]; then
+          
+          echo "| latest | $LATEST_EMOJI $LATEST_STATUS |" >> $GITHUB_STEP_SUMMARY
+          echo "| $VERSION | $VERSION_EMOJI $VERSION_STATUS |" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$LATEST_STATUS" = "Presente" ] && [ "$VERSION_STATUS" = "Presente" ]; then
             echo "✅ Both tags are present on Docker Hub: latest and $VERSION"
           else
             echo "❌ Verification failed!"
