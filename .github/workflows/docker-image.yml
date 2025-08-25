@@ -1,4 +1,4 @@
-name: 🐳 Docker Redis - Build & Push
+name: 🐳 Docker Redis - Build & Push Multi-Arch
 
 on:
   push:
@@ -19,32 +19,21 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 🏗️ Build Docker image
+      - name: 📌 Extract version from Dockerfile
         run: |
-          set -e
-          set -o pipefail
-
           VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "📝 Detected Docker version: $VERSION"
-          
-          docker build -t redis:latest -t redis:$VERSION .
-          echo "🛠️ Docker image built with tags: latest and $VERSION"
 
-      - name: 🏷️ Tag Docker images
+      - name: 🔧 Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Build & Push Multi-Arch Docker image
         run: |
           set -e
           set -o pipefail
 
-          VERSION=$(grep -i 'LABEL version' Dockerfile | cut -d'"' -f2)
-          docker tag redis:latest ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest
-          docker tag redis:$VERSION ${{ secrets.DOCKERHUB_USERNAME }}/redis:$VERSION
-          echo "🏷️ Docker images tagged: latest and $VERSION"
-
-      - name: 🚀 Push Docker images to 🐳 Docker Hub
-        run: |
-          set -e
-          set -o pipefail
-
+          echo "📦 Building multi-arch image for amd64 & arm64"
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
             --tag ${{ secrets.DOCKERHUB_USERNAME }}/redis:latest \
@@ -59,7 +48,6 @@ jobs:
           set -e
           set -o pipefail
 
-          VERSION=$(grep -i "LABEL version" Dockerfile | cut -d'"' -f2)
           echo "🔍 Verifying Docker Hub tags for user: ${{ secrets.DOCKERHUB_USERNAME }}"
 
           TAGS=$(curl -s "https://hub.docker.com/v2/repositories/${{ secrets.DOCKERHUB_USERNAME }}/redis/tags?page_size=100" | jq -r ".results[].name")
@@ -72,7 +60,6 @@ jobs:
           echo "| 🔖 Tag | Estado |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
 
-          # Estados con emojis
           if echo "$TAGS" | grep -q "latest"; then
             LATEST="✅ Presente"
           else
@@ -85,11 +72,9 @@ jobs:
             VERSION_STATUS="❌ Faltante"
           fi
 
-          # Tabla en summary
           echo "| latest | $LATEST |" >> $GITHUB_STEP_SUMMARY
           echo "| $VERSION | $VERSION_STATUS |" >> $GITHUB_STEP_SUMMARY
 
-          # Mensaje en consola con emojis
           if [[ "$LATEST" == "✅ Presente" && "$VERSION_STATUS" == "✅ Presente" ]]; then
             echo "🎯 Both tags are present on Docker Hub: latest and $VERSION"
           else
