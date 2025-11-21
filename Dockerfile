@@ -1,4 +1,4 @@
-FROM redis:8.2.1-bookworm
+FROM redis:8.4.0-bookworm
 
 WORKDIR /redis
 
