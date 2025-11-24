@@ -5,7 +5,7 @@ WORKDIR /redis
 COPY init.sh .
 COPY redis.conf .
 
-LABEL version="8.2.1-bookworm"
+LABEL version="8.4.0-bookworm"
 LABEL org.opencontainers.image.authors="https://blog.azagra.dev"
 
 EXPOSE 6379/tcp
