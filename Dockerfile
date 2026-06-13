@@ -1,11 +1,11 @@
-FROM redis:8.4.0-bookworm
+FROM redis:8.6.4-trixie
 
 WORKDIR /redis
 
 COPY init.sh .
 COPY redis.conf .
 
-LABEL version="8.4.0-bookworm"
+LABEL version="redis:8.6.4-trixie"
 LABEL org.opencontainers.image.authors="https://blog.azagra.dev"
 
 EXPOSE 6379/tcp
